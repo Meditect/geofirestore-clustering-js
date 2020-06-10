@@ -54,7 +54,6 @@
     "@google-cloud/firestore": ">= 2.0.0",
     "@types/ngeohash": "^0.6.2",
     "firebase": ">= 6.0.0",
-    "ngeohash": "^0.6.3",
     "spherical-geometry-js": "^2.0.0"
   },
   "devDependencies": {
