@@ -89,7 +89,7 @@ query.get().then((value: GeoQuerySnapshot) => {
 
 //WithClusters
 
-// Add 10 GeoDocument to a GeoCollection, which corresponds to 10 geohash with different precisions
+// Add 10 GeoDocuments to a GeoCollection, which corresponds to 10 geohash with different precisions
 geocollection.add({
     coordinates: new firebase.firestore.GeoPoint(6.768506, -2.532505),
     id: "DocumentId" },
