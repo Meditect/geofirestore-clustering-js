@@ -52,7 +52,6 @@
   ],
   "dependencies": {
     "@google-cloud/firestore": ">= 2.0.0",
-    "@types/ngeohash": "^0.6.2",
     "firebase": ">= 6.0.0",
     "spherical-geometry-js": "^2.0.0"
   },
@@ -71,9 +70,11 @@
     "nyc": "14.x.x",
     "protobufjs": "github:geofirestore/protobuf.js",
     "rollup": "1.x.x",
+    "@types/ngeohash": "^0.6.2",
+    "@rollup/plugin-commonjs": "^13.0.0",
+    "@rollup/plugin-node-resolve": "^8.0.1",
     "rollup-plugin-commonjs": "10.x.x",
     "rollup-plugin-copier": "1.x.x",
-    "rollup-plugin-node-resolve": "5.x.x",
     "rollup-plugin-terser": "5.x.x",
     "rollup-plugin-typescript2": "0.x.x",
     "ts-node": "8.x.x",
