@@ -1,6 +1,6 @@
-import commonjs from 'rollup-plugin-commonjs';
+import commonjs from '@rollup/plugin-commonjs';
 import copier from 'rollup-plugin-copier';
-import resolveModule from 'rollup-plugin-node-resolve';
+import resolveModule from '@rollup/plugin-node-resolve';
 import typescript from 'rollup-plugin-typescript2';
 import { terser } from 'rollup-plugin-terser';
 import pkg from './package.json';
