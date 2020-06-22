@@ -1,7 +1,7 @@
 {
-  "name": "meditect-geofirestore-clustering-js",
+  "name": "@meditect/geofirestore-clustering-js",
   "description": "Location-based querying and filtering using Firebase's Firestore",
-  "version": "3.4.1",
+  "version": "1.0.0",
   "scripts": {
     "build": "rm -rf ./dist && rollup -c",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
@@ -20,14 +20,9 @@
   "browser": "dist/geofirestore.js",
   "module": "dist/index.esm.js",
   "typings": "dist/index.d.ts",
-  "author": "Michael Solati <mkslt04@gmail.com>",
-  "homepage": "https://geofirestore.com/",
+  "author": "Meditect <contact@meditect.com>",
   "repository": {
-    "type": "git",
-    "url": "https://github.com/geofirestore/geofirestore-js.git"
-  },
-  "bugs": {
-    "url": "https://github.com/geofirestore/geofirestore-js/issues"
+    "url": "https://github.com/Meditect/geofirestore-clustering-js"
   },
   "readme": "README.md",
   "license": "MIT",
