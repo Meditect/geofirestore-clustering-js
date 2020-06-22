@@ -100,7 +100,7 @@ geocollection.add({
 const query: GeoQuery = geocollection.within({ ne: {lat: 6.768623, lng: -2.532140 }, sw: {lat: 5.271840, lng: -4.828282 }, zoom: 4});
 
 
-// Get query (as Promise)
+// onSnapshot query (as Promise)
 query.onSnapshot((value: GeoQuerySnapshot) => {
 // All GeoDocument returned by GeoQuery, like the GeoDocument added above
  console.log(value.docs);
