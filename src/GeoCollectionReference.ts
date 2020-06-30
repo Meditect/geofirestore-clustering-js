@@ -1,7 +1,7 @@
 import { GeoFirestoreTypes } from './GeoFirestoreTypes';
 import { GeoDocumentReference } from './GeoDocumentReference';
 import { GeoQuery } from './GeoQuery';
-import { findCoordinates, encodeGeohash, encodeGeoDocument, GEOHASH_PRECISION, newCentroid} from './utils';
+import { findCoordinates, encodeGeohash, encodeGeoDocument, GEOHASH_PRECISION, newCentroid, increment} from './utils';
 
 /**
  * A `GeoCollectionReference` object can be used for adding documents, getting document references, and querying for documents (using the
@@ -69,20 +69,21 @@ export class GeoCollectionReference extends GeoQuery {
           await (this._collection as GeoFirestoreTypes.cloud.CollectionReference).where('g', '==', curGeohash).get().then((snapshot) => {
             // If the geohash already exist we can just complete all documents
             snapshot.docs.forEach(doc => {
-              size = (doc as FirebaseFirestore.QueryDocumentSnapshot).data().s;
+              size = (doc as FirebaseFirestore.QueryDocumentSnapshot).data().s + increment(1);
               data.oldLocation = (doc as FirebaseFirestore.QueryDocumentSnapshot).data().l;
               location = newCentroid(data.oldLocation, data.coordinates, size);
               (this._collection as GeoFirestoreTypes.cloud.CollectionReference)
-                .doc(curGeohash).set(encodeGeoDocument(location, curGeohash, data, true, size + 1))
+                .doc(curGeohash).set(encodeGeoDocument(location, curGeohash, data, true, size))
             });
 
             // If the geohash doesn't exist we just have to create new documents
             if (snapshot.docs.length <= 0) {
               size = 0;
+              size = increment(1);
               data.pointId = data.id;
               location = data.coordinates;
               (this._collection as GeoFirestoreTypes.cloud.CollectionReference)
-              .doc(curGeohash).set(encodeGeoDocument(location, curGeohash, data, true, size + 1))
+              .doc(curGeohash).set(encodeGeoDocument(location, curGeohash, data, true, size))
             }
           })
           i++;

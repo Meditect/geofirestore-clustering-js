@@ -3,9 +3,10 @@ import { GeoFirestoreTypes } from './GeoFirestoreTypes';
 // import {Cluster} from "./interfaces";
 // import * as firebase from 'firebase/app';
 import { interpolate, LatLng } from 'spherical-geometry-js';
-
 // Characters used in location geohashes
 export const BASE32 = '0123456789bcdefghjkmnpqrstuvwxyz';
+import {firestore as firestoreAdmin} from 'firebase-admin';
+import FieldValue = firestoreAdmin.FieldValue
 
 // Number of bits per geohash character
 export const BITS_PER_CHAR = 5;
@@ -16,6 +17,8 @@ export const BITS_PER_CHAR = 5;
 // E2 == (EARTH_EQ_RADIUS^2-EARTH_POL_RADIUS^2)/(EARTH_EQ_RADIUS^2)
 // The exact value is used here to avoid rounding errors
 export const E2 = 0.00669447819799;
+
+export const increment = (value: number): number => FieldValue.increment(value) as unknown as number;
 
 // Equatorial radius of the earth in meters
 export const EARTH_EQ_RADIUS = 6378137.0;
