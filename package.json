@@ -1,7 +1,7 @@
 {
-  "name": "geofirestore-clustering-js",
+  "name": "@meditect/geofirestore-clustering-js",
   "description": "Location-based querying and filtering using Firebase's Firestore",
-  "version": "3.4.1",
+  "version": "1.0.0",
   "scripts": {
     "build": "rm -rf ./dist && rollup -c",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
@@ -20,14 +20,9 @@
   "browser": "dist/geofirestore.js",
   "module": "dist/index.esm.js",
   "typings": "dist/index.d.ts",
-  "author": "Michael Solati <mkslt04@gmail.com>",
-  "homepage": "https://geofirestore.com/",
+  "author": "Meditect <contact@meditect.com>",
   "repository": {
-    "type": "git",
-    "url": "https://github.com/geofirestore/geofirestore-js.git"
-  },
-  "bugs": {
-    "url": "https://github.com/geofirestore/geofirestore-js/issues"
+    "url": "https://github.com/Meditect/geofirestore-clustering-js"
   },
   "readme": "README.md",
   "license": "MIT",
@@ -50,14 +45,19 @@
     "package.json",
     "README.md"
   ],
-  "optionalDependencies": {
+  "dependencies": {
     "@google-cloud/firestore": ">= 2.0.0",
-    "@types/node": ">= 8.0.0",
-    "firebase": ">= 6.0.0"
+    "firebase": ">= 6.0.0",
+    "firebase-admin": "^8.13.0",
+    "spherical-geometry-js": "^2.0.0"
   },
   "devDependencies": {
+    "@rollup/plugin-commonjs": "^13.0.0",
+    "@rollup/plugin-node-resolve": "^8.0.1",
     "@types/chai": "4.x.x",
     "@types/mocha": "5.x.x",
+    "@types/ngeohash": "^0.6.2",
+    "@types/node": ">= 8.0.0",
     "chai": "4.x.x",
     "coveralls": "3.x.x",
     "firebase-tools": "7.x.x",
@@ -68,12 +68,10 @@
     "mocha": "6.x.x",
     "nyc": "14.x.x",
     "protobufjs": "github:geofirestore/protobuf.js",
-    "rollup": "1.x.x",
-    "rollup-plugin-commonjs": "10.x.x",
-    "rollup-plugin-copier": "1.x.x",
-    "rollup-plugin-node-resolve": "5.x.x",
-    "rollup-plugin-terser": "5.x.x",
-    "rollup-plugin-typescript2": "0.x.x",
+    "rollup": "^2.16.1",
+    "rollup-plugin-copier": "^1.1.0",
+    "rollup-plugin-terser": "^6.1.0",
+    "rollup-plugin-typescript2": "^0.27.1",
     "ts-node": "8.x.x",
     "typedoc": "0.x.x",
     "typescript": "3.6.x"

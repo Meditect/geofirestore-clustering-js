@@ -86,6 +86,25 @@ query.get().then((value: GeoQuerySnapshot) => {
   // All GeoDocument returned by GeoQuery, like the GeoDocument added above
   console.log(value.docs);
 });
+
+//WithClusters
+
+// Add 10 GeoDocuments to a GeoCollection, which corresponds to 10 geohash with different precisions
+geocollection.add({
+    coordinates: new firebase.firestore.GeoPoint(6.768506, -2.532505),
+    id: "DocumentId" },
+    null,
+    true)
+
+// Create a GeoQuery based on a viewport and a zoom
+const query: GeoQuery = geocollection.within({ ne: {lat: 6.768623, lng: -2.532140 }, sw: {lat: 5.271840, lng: -4.828282 }, zoom: 4});
+
+
+// onSnapshot query (as Promise)
+query.onSnapshot((value: GeoQuerySnapshot) => {
+// All GeoDocument returned by GeoQuery, like the GeoDocument added above
+ console.log(value.docs);
+})
 ```
 
 Simple. Easy. And very similar with how Firestore handles a `get` from a Firestore `Query`. The difference being the added ability to say query `near` a `center` point, with a set `radius` in kilometers.

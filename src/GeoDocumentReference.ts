@@ -1,8 +1,10 @@
 import { GeoFirestoreTypes } from './GeoFirestoreTypes';
-import { encodeSetDocument, encodeUpdateDocument, sanitizeSetOptions } from './utils';
+import { encodeSetDocument, encodeUpdateDocument, sanitizeSetOptions, deletingPointFromCentroid, encodeGeoDocument, GEOHASH_PRECISION} from './utils';
 import { GeoCollectionReference } from './GeoCollectionReference';
 import { GeoDocumentSnapshot } from './GeoDocumentSnapshot';
 import { GeoFirestore } from './GeoFirestore';
+
+// const cloudfirestore = require("@google-cloud/firestore");
 
 /**
  * A `GeoDocumentReference` refers to a document location in a Firestore database and can be used to write, read, or listen to the
@@ -67,11 +69,49 @@ export class GeoDocumentReference {
   /**
    * Deletes the document referred to by this `GeoDocumentReference`.
    *
-   * @return A Promise resolved once the document has been successfully deleted from the backend (Note that it won't resolve while you're
-   * offline).
+   * @return A Promise resolved once the document has been successfully deleted from the backend (Note that it won't resolve while you're offline).
+   * @param withClusters A Boolean which allow us to know if it's about a cluster or not.
+   * @param findPointId Callback that allows you to find the point id when the cluster size goes from 2 to 1.
+   *
    */
-  delete(): Promise<void> {
-    return (this._document as GeoFirestoreTypes.web.DocumentReference).delete().then(() => null);
+  delete = async (withClusters? : Boolean, onUpdate? : (snapshot: FirebaseFirestore.DocumentData) => void): Promise<void> => {
+    if (withClusters){
+      var data : GeoFirestoreTypes.DocumentData = {};
+      let geohash = this.id;
+      let i = GEOHASH_PRECISION;
+      let ref : GeoFirestoreTypes.cloud.DocumentReference | GeoFirestoreTypes.web.DocumentReference;
+      let GeopointToRemove : GeoFirestoreTypes.cloud.GeoPoint;
+
+      while (i > 0) {
+        const curGeohash = geohash.substring(0, i);
+          // We are looking if the point the Geopoint is inside the collection
+        const snapshot = await (this._document.parent).doc(curGeohash).get();
+        const curCluster = snapshot.data();
+        if (snapshot.exists){
+          ref = snapshot.ref;
+          // Stock the geopoint to remove from the centroid
+          if (curGeohash.length === 10)
+            GeopointToRemove = curCluster.l;
+          // deleting the document if the size is <= 1
+          if (curCluster.s <= 1)
+            await ref.delete();
+          else
+          {
+            curCluster.l = deletingPointFromCentroid(curCluster.l, GeopointToRemove, curCluster.s);
+            curCluster.s -= 1;
+            onUpdate(curCluster);
+            await ref.set(encodeGeoDocument(curCluster.l, curGeohash, data, true, curCluster.s));
+          }
+        }
+        else {
+          throw new Error('Geopoint does not exist');
+        }
+        i--;
+      }
+    }
+    else {
+      return (this._document as GeoFirestoreTypes.web.DocumentReference).delete().then(() => null);
+    }
   }
 
   /**
@@ -132,7 +172,7 @@ export class GeoDocumentReference {
    */
   set(data: GeoFirestoreTypes.DocumentData, options?: GeoFirestoreTypes.SetOptions): Promise<void> {
     return (this._document as GeoFirestoreTypes.web.DocumentReference).set(
-      encodeSetDocument(data, options), 
+      encodeSetDocument(data, options),
       sanitizeSetOptions(options)
     ).then(() => null);
   }
@@ -144,9 +184,17 @@ export class GeoDocumentReference {
    * @param data An object containing the fields and values with which to update the document. Fields can contain dots to reference nested
    * fields within the document.
    * @param customKey The key of the document to use as the location. Otherwise we default to `coordinates`.
+   * @param withClusters A Boolean which allow us to know if it's about a cluster or not.
    * @return A Promise resolved once the data has been successfully written to the backend (Note it won't resolve while you're offline).
    */
-  update(data: GeoFirestoreTypes.UpdateData, customKey?: string): Promise<void> {
+  update = async (data: GeoFirestoreTypes.UpdateData, customKey?: string, withClusters? : Boolean): Promise<void> => {
+    if (withClusters){
+
+      await this.delete(true);
+      await this.parent.add(data, null, true);
+
+      return null;
+    }
     return (this._document as GeoFirestoreTypes.web.DocumentReference).update(encodeUpdateDocument(data, customKey)).then(() => null);
   }
 }

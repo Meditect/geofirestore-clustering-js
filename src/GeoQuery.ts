@@ -3,7 +3,8 @@ import { GeoFirestore } from './GeoFirestore';
 import { GeoJoinerGet } from './GeoJoinerGet';
 import { GeoJoinerOnSnapshot } from './GeoJoinerOnSnapshot';
 import { GeoQuerySnapshot } from './GeoQuerySnapshot';
-import { validateQueryCriteria, geohashQueries, validateLimit } from './utils';
+import { validateQueryCriteria, geohashQueries, validateLimit, geohashClustersQueries } from './utils';
+import * as ngeohash from 'ngeohash';
 
 /**
  * A `GeoQuery` refers to a Query which you can read or listen to. You can also construct refined `GeoQuery` objects by adding filters and
@@ -14,6 +15,9 @@ export class GeoQuery {
   private _limit: number;
   private _radius: number;
   private _isWeb: boolean;
+  private _ne: {lat: number, lng: number};
+  private _sw: {lat: number, lng: number};
+  private _zoom: number;
 
   /**
    * @param _query The `Query` instance.
@@ -38,6 +42,13 @@ export class GeoQuery {
         this._center = queryCriteria.center;
         this._radius = queryCriteria.radius;
       }
+      if (queryCriteria.sw && queryCriteria.ne && queryCriteria.zoom){
+        // Validate and save the query criteria
+        validateQueryCriteria(queryCriteria);
+        this._sw = queryCriteria.sw;
+        this._ne = queryCriteria.ne;
+        this._zoom = queryCriteria.zoom;
+      }
     }
   }
 
@@ -54,6 +65,28 @@ export class GeoQuery {
   }
 
   /**
+<<<<<<< HEAD
+=======
+   * Attaches a listener for `GeoQuerySnapshot` events.
+   *
+   * @param onNext A callback to be called every time a new `GeoQuerySnapshot` is available.
+   * @param onError A callback to be called if the listen fails or is cancelled. Since multuple queries occur only the failed query will
+   * cease.
+   * @return An unsubscribe function that can be called to cancel the snapshot listener.
+   */
+  get onSnapshot(): ((onNext: (snapshot: GeoQuerySnapshot) => void, onError?: (error: Error) => void) => () => void) {
+    return (onNext: (snapshot: GeoQuerySnapshot) => void, onError?: (error: Error) => void): (() => void) => {
+      if ((this._center && this._radius) || (this._ne && this._sw && this._zoom)) {
+        return new GeoJoinerOnSnapshot(this._generateQuery(), this._queryCriteria, onNext, onError).unsubscribe();
+      } else {
+        const query = this._limit ? this._query.limit(this._limit) : this._query;
+        return (query as GeoFirestoreTypes.web.Query).onSnapshot((snapshot) => onNext(new GeoQuerySnapshot(snapshot)), onError);
+      }
+    };
+  }
+
+  /**
+>>>>>>> 4e343e9379a65ea34fb41a02b32c764f5da58030
    * Executes the query and returns the results as a GeoQuerySnapshot.
    *
    * WEB CLIENT ONLY
@@ -109,6 +142,20 @@ export class GeoQuery {
     return new GeoQuery(this._query, this._queryCriteria);
   }
 
+   /**
+   * Creates and returns a new GeoQuery with the geoquery filter where `get` and `onSnapshot` will query around.
+   *
+   * This function returns a new (immutable) instance of the GeoQuery (rather than modify the existing instance) to impose the filter.
+   *
+   * @param newQueryCriteria The criteria which specifies the query's center and radius.
+   * @return The created GeoQuery.
+   */
+  within(newGeoQueryCriteria: GeoFirestoreTypes.QueryCriteria): GeoQuery {
+    this._ne = newGeoQueryCriteria.ne || this._ne;
+    this._sw = newGeoQueryCriteria.sw || this._sw;
+    this._zoom = newGeoQueryCriteria.zoom || this._zoom;
+    return new GeoQuery(this._query, this._queryCriteria);
+  }
   /**
    * Attaches a listener for `GeoQuerySnapshot` events.
    *
@@ -154,11 +201,17 @@ export class GeoQuery {
    * @return Array of Queries to search against.
    */
   private _generateQuery(): GeoFirestoreTypes.web.Query[] {
+    let geohashesToQuery: string[];
+
     // Get the list of geohashes to query
-    let geohashesToQuery: string[] = geohashQueries(this._center, this._radius * 1000).map(this._queryToString);
+    if (this._ne && this._sw && this._zoom) {
+      const geohashesArray = ngeohash.bboxes(this._sw.lat, this._sw.lng, this._ne.lat, this._ne.lng, this._zoom);
+      geohashesToQuery = geohashClustersQueries(geohashesArray).map(this._queryToString);
+    } else if (this._center && this._radius){
+      geohashesToQuery = geohashQueries(this._center, this._radius * 1000).map(this._queryToString);
+    }
     // Filter out duplicate geohashes
     geohashesToQuery = geohashesToQuery.filter((geohash: string, i: number) => geohashesToQuery.indexOf(geohash) === i);
-
     return geohashesToQuery.map((toQueryStr: string) => {
       // decode the geohash query string
       const query: string[] = this._stringToQuery(toQueryStr);
@@ -174,7 +227,10 @@ export class GeoQuery {
     return {
       center: this._center,
       limit: this._limit,
-      radius: this._radius
+      radius: this._radius,
+      ne: this._ne,
+      sw: this._sw,
+      zoom : this._zoom
     };
   }
 
