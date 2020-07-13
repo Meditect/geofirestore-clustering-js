@@ -56,35 +56,50 @@ export class GeoCollectionReference extends GeoQuery {
   ): Promise<GeoDocumentReference> => {
 
     if (Object.prototype.toString.call(data) === '[object Object]') {
-      var location = findCoordinates(data, customKey);
+      let location = findCoordinates(data, customKey);
       const geohash: string = encodeGeohash(location);
       if (withClusters == true) {
         let i = 0;
 
         while (i < GEOHASH_PRECISION) {
           const curGeohash: string = geohash.substring(0, i + 1);
-          var size : number;
+          let size : number;
+          /*try {
+            await FirebaseFirestore.runTransaction(async (t) => {
 
-          // We are looking inside the collection
-          await (this._collection as GeoFirestoreTypes.cloud.CollectionReference).where('g', '==', curGeohash).get().then((snapshot) => {
-            // If the geohash already exist we can just complete all documents
-            snapshot.docs.forEach(doc => {
-              size = (doc as FirebaseFirestore.QueryDocumentSnapshot).data().s;
-              data.oldLocation = (doc as FirebaseFirestore.QueryDocumentSnapshot).data().l;
-              location = newCentroid(data.oldLocation, data.coordinates, size);
-              (this._collection as GeoFirestoreTypes.cloud.CollectionReference)
-                .doc(curGeohash).set(encodeGeoDocument(location, curGeohash, data, true, size + 1))
             });
 
-            // If the geohash doesn't exist we just have to create new documents
-            if (snapshot.docs.length <= 0) {
-              size = 0;
-              data.pointId = data.id;
-              location = data.coordinates;
-              (this._collection as GeoFirestoreTypes.cloud.CollectionReference)
-              .doc(curGeohash).set(encodeGeoDocument(location, curGeohash, data, true, size + 1))
-            }
-          })
+            console.log('Transaction success!');
+          } catch (e) {
+            console.log('Transaction failure:', e);
+          }*/
+
+
+
+
+
+          // We are looking inside the collection
+          const snapshot = await (this._collection as GeoFirestoreTypes.cloud.CollectionReference).doc(curGeohash).get();
+          const cluster = snapshot.data();
+
+
+
+
+          // If the geohash already exist we can just complete all documents
+          snapshot.docs.forEach(doc => {
+            size = doc.data().s;
+            data.oldLocation = doc.data().l;
+            location = newCentroid(data.oldLocation, data.coordinates, size);
+            this._collection.doc(curGeohash).set(encodeGeoDocument(location, curGeohash, data, true, size + 1))
+          });
+
+          // If the geohash doesn't exist we just have to create new documents
+          if (snapshot.docs.length <= 0) {
+            size = 0;
+            data.pointId = data.id;
+            location = data.coordinates;
+            this._collection.doc(curGeohash).set(encodeGeoDocument(location, curGeohash, data, true, size + 1))
+          }
           i++;
         }
       }
