@@ -69,8 +69,8 @@ export class GeoTransaction {
     const ref = ((documentRef instanceof GeoDocumentReference) ?
       documentRef['_document'] : documentRef) as GeoFirestoreTypes.cloud.DocumentReference;
     (this._transaction as GeoFirestoreTypes.cloud.Transaction).set(
-      ref, 
-      encodeSetDocument(data, options), 
+      ref,
+      encodeSetDocument(data, options),
       sanitizeSetOptions(options)
     );
     return this;

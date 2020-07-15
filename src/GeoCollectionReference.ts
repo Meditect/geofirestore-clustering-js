@@ -1,7 +1,12 @@
+import { GeoTransaction } from './GeoTransaction';
 import { GeoFirestoreTypes } from './GeoFirestoreTypes';
+import { GeoFirestore } from './GeoFirestore';
 import { GeoDocumentReference } from './GeoDocumentReference';
 import { GeoQuery } from './GeoQuery';
-import { findCoordinates, encodeGeohash, encodeGeoDocument, GEOHASH_PRECISION, newCentroid} from './utils';
+import { findCoordinates, encodeGeohash, encodeGeoDocument, GEOHASH_PRECISION, newCentroid } from './utils';
+// import * as firebase from 'firebase';
+// import 'firebase/firestore';
+// const firestore = firebase.firestore;
 
 /**
  * A `GeoCollectionReference` object can be used for adding documents, getting document references, and querying for documents (using the
@@ -49,77 +54,70 @@ export class GeoCollectionReference extends GeoQuery {
    * @return A Promise resolved with a `GeoDocumentReference` pointing to the newly created document after it has been written to the
    * backend.
    */
-  add = async(
+  add = async (
     data: GeoFirestoreTypes.DocumentData,
     customKey?: string,
     withClusters?: Boolean,
   ): Promise<GeoDocumentReference> => {
 
     if (Object.prototype.toString.call(data) === '[object Object]') {
-      let location = findCoordinates(data, customKey);
-      const geohash: string = encodeGeohash(location);
+      var location = findCoordinates(data, customKey);
+      const geohash: string = encodeGeohash(data.coordinates);
       if (withClusters == true) {
         let i = 0;
+        const geofirestore = new GeoFirestore(this._collection.firestore);
 
         while (i < GEOHASH_PRECISION) {
           const curGeohash: string = geohash.substring(0, i + 1);
-          let size : number;
-          /*try {
-            await FirebaseFirestore.runTransaction(async (t) => {
 
-            });
+          // Get document reference
+          const ref = await (this._collection as GeoFirestoreTypes.cloud.CollectionReference).doc(curGeohash);
 
-            console.log('Transaction success!');
-          } catch (e) {
-            console.log('Transaction failure:', e);
-          }*/
-
-
-
-
-
-          // We are looking inside the collection
-          const snapshot = await (this._collection as GeoFirestoreTypes.cloud.CollectionReference).doc(curGeohash).get();
-          const cluster = snapshot.data();
-
-
-
-
-          // If the geohash already exist we can just complete all documents
-          snapshot.docs.forEach(doc => {
-            size = doc.data().s;
-            data.oldLocation = doc.data().l;
-            location = newCentroid(data.oldLocation, data.coordinates, size);
-            this._collection.doc(curGeohash).set(encodeGeoDocument(location, curGeohash, data, true, size + 1))
-          });
-
-          // If the geohash doesn't exist we just have to create new documents
-          if (snapshot.docs.length <= 0) {
-            size = 0;
-            data.pointId = data.id;
-            location = data.coordinates;
-            this._collection.doc(curGeohash).set(encodeGeoDocument(location, curGeohash, data, true, size + 1))
-          }
+          // Transaction
+          try {
+            await geofirestore.runTransaction(async (t) => {
+              // Init GeoTransaction
+              const geotransaction = new GeoTransaction(t);
+              // Get snapshot
+              var snapshot = await geotransaction.get(ref)
+              if (snapshot.exists){
+                const cluster = snapshot.data();
+                let newSize = cluster.s + 1;
+                const oldLocation = cluster.l;
+                location = newCentroid(oldLocation, data.coordinates, newSize);
+                // Set document
+                geotransaction.set(ref, encodeGeoDocument(location, curGeohash, data, true, newSize), { customKey:'l'});
+              }
+              else if (!snapshot.exists){
+                  data.pointId = data.id;
+                  location = data.coordinates;
+                  this._collection.doc(curGeohash).set(encodeGeoDocument(location, curGeohash, data, true, 1))
+                }
+              });
+            }
+            catch (e) {
+              console.error('Transaction failure:', e);
+            }
           i++;
         }
       }
       else
         return (this._collection as GeoFirestoreTypes.cloud.CollectionReference)
-          .add(encodeGeoDocument(location, geohash, data)).then(doc  => new GeoDocumentReference(doc as FirebaseFirestore.DocumentReference));
+          .add(encodeGeoDocument(location, geohash, data)).then(doc => new GeoDocumentReference(doc as FirebaseFirestore.DocumentReference));
     } else {
       throw new Error('document must be an object');
     }
     return null
   }
 
-   /**
-   * Get a `GeoDocumentReference` for the document within the collection at the specified location.
-   *
-   * @param location A geopoint.
-   * @return The `GeoDocumentReference` instance.
-   */
-  getRefFromLocation(location : GeoFirestoreTypes.cloud.GeoPoint) : GeoDocumentReference {
-    const geohash : string = encodeGeohash(location);
+  /**
+  * Get a `GeoDocumentReference` for the document within the collection at the specified location.
+  *
+  * @param location A geopoint.
+  * @return The `GeoDocumentReference` instance.
+  */
+  getRefFromLocation(location: GeoFirestoreTypes.cloud.GeoPoint): GeoDocumentReference {
+    const geohash: string = encodeGeohash(location);
     return new GeoDocumentReference(this._collection.doc(geohash))
   }
 
