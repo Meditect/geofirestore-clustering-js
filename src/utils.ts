@@ -327,7 +327,11 @@ export function encodeSetDocument(
   if (Object.prototype.toString.call(data) === '[object Object]') {
     const customKey = (options) ? options.customKey : null;
     const unparsed: GeoFirestoreTypes.DocumentData = ('d' in data) ? data.d : data;
-    const location = findCoordinates(unparsed, customKey, (options && (options.merge || !!options.mergeFields)));
+  const location = findCoordinates(unparsed, customKey, (options && (options.merge || !!options.mergeFields)));
+    if (location && customKey == "l") {
+      const geohash: string = encodeGeohash(location);
+      return encodeGeoDocument(location, geohash, unparsed, true, data.s);
+    }
     if (location) {
       const geohash: string = encodeGeohash(location);
       return encodeGeoDocument(location, geohash, unparsed);
@@ -391,7 +395,6 @@ export function findCoordinates(
       coordinates = coordinates[prop];
     }
   }
-
   if (!coordinates) {
     error = 'could not find GeoPoint';
   }
