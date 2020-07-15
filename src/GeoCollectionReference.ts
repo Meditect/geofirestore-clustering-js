@@ -79,7 +79,7 @@ export class GeoCollectionReference extends GeoQuery {
               // Init GeoTransaction
               const geotransaction = new GeoTransaction(t);
               // Get snapshot
-              var snapshot = await geotransaction.get(ref)
+              const snapshot = await geotransaction.get(ref)
               if (snapshot.exists){
                 const cluster = snapshot.data();
                 let newSize = cluster.s + 1;
