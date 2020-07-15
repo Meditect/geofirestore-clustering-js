@@ -1,7 +1,5 @@
 // import { getUpdatedClusterObject } from './utils';
 import { GeoFirestoreTypes } from './GeoFirestoreTypes';
-// import {Cluster} from "./interfaces";
-import * as firebase from 'firebase';
 import { interpolate, LatLng } from 'spherical-geometry-js';
 
 // Characters used in location geohashes

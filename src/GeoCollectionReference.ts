@@ -4,9 +4,6 @@ import { GeoFirestore } from './GeoFirestore';
 import { GeoDocumentReference } from './GeoDocumentReference';
 import { GeoQuery } from './GeoQuery';
 import { findCoordinates, encodeGeohash, encodeGeoDocument, GEOHASH_PRECISION, newCentroid } from './utils';
-// import * as firebase from 'firebase';
-// import 'firebase/firestore';
-// const firestore = firebase.firestore;
 
 /**
  * A `GeoCollectionReference` object can be used for adding documents, getting document references, and querying for documents (using the
