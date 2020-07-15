@@ -8,6 +8,7 @@ docs/
 functions/etc/
 functions/lib/
 node_modules/
+.idea/
 
 # Files
 .DS_Store
