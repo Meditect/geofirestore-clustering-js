@@ -78,7 +78,7 @@ export class GeoCollectionReference extends GeoQuery {
               // Get snapshot
               const snapshot = await geotransaction.get(ref)
               // Complete existing documents by incrementing the size and calculate new centroïde
-              if (snapshot.exists){
+              if (snapshot.exists) {
                 // Get data from snapshot
                 const cluster = snapshot.data();
                 // Incrementing cluster size
@@ -87,20 +87,20 @@ export class GeoCollectionReference extends GeoQuery {
                 const oldLocation = cluster.l;
                 location = newCentroid(oldLocation, data.coordinates, newSize);
                 // Set document with geotransaction
-                geotransaction.set(ref, encodeGeoDocument(location, curGeohash, data, true, newSize), { customKey:'l'});
+                geotransaction.set(ref, encodeGeoDocument(location, curGeohash, data, true, newSize), { customKey: 'l' });
               }
               // Create documents
-              else if (!snapshot.exists){
+              else if (!snapshot.exists) {
                 // get id of the ressource you're adding
                 data.pointId = data.id;
                 location = data.coordinates;
                 this._collection.doc(curGeohash).set(encodeGeoDocument(location, curGeohash, data, true, 1))
-                }
-              });
-            }
-            catch (e) {
-              console.error('Transaction failure:', e);
-            }
+              }
+            });
+          }
+          catch (e) {
+            console.error('Transaction failure:', e);
+          }
           i++;
         }
       }
