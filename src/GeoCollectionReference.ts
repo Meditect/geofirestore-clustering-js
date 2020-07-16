@@ -77,18 +77,24 @@ export class GeoCollectionReference extends GeoQuery {
               const geotransaction = new GeoTransaction(t);
               // Get snapshot
               const snapshot = await geotransaction.get(ref)
+              // Complete existing documents by incrementing the size and calculate new centroïde
               if (snapshot.exists){
+                // Get data from snapshot
                 const cluster = snapshot.data();
+                // Incrementing cluster size
                 let newSize = cluster.s + 1;
+                // Get old centroïd
                 const oldLocation = cluster.l;
                 location = newCentroid(oldLocation, data.coordinates, newSize);
-                // Set document
+                // Set document with geotransaction
                 geotransaction.set(ref, encodeGeoDocument(location, curGeohash, data, true, newSize), { customKey:'l'});
               }
+              // Create documents
               else if (!snapshot.exists){
-                  data.pointId = data.id;
-                  location = data.coordinates;
-                  this._collection.doc(curGeohash).set(encodeGeoDocument(location, curGeohash, data, true, 1))
+                // get id of the ressource you're adding
+                data.pointId = data.id;
+                location = data.coordinates;
+                this._collection.doc(curGeohash).set(encodeGeoDocument(location, curGeohash, data, true, 1))
                 }
               });
             }
