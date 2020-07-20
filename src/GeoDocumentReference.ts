@@ -96,7 +96,6 @@ export class GeoDocumentReference {
       var data: GeoFirestoreTypes.DocumentData = {};
       let geohash = this.id;
       let i = GEOHASH_PRECISION;
-      let ref: GeoFirestoreTypes.cloud.DocumentReference | GeoFirestoreTypes.web.DocumentReference;
       let GeopointToRemove: GeoFirestoreTypes.cloud.GeoPoint;
       const geofirestore = new GeoFirestore(this._document.parent.firestore);
 

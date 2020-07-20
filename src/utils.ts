@@ -326,8 +326,8 @@ export function encodeSetDocument(
     const customKey = (options) ? options.customKey : null;
     const unparsed: GeoFirestoreTypes.DocumentData = ('d' in data) ? data.d : data;
   const location = findCoordinates(unparsed, customKey, (options && (options.merge || !!options.mergeFields)));
-    if (location && customKey == "l") {
-      const geohash: string = encodeGeohash(location);
+    if (customKey == "l") {
+      const geohash: string = data.g;
       return encodeGeoDocument(location, geohash, unparsed, true, data.s);
     }
     if (location) {
