@@ -119,7 +119,7 @@ export class GeoDocumentReference {
           }
         }
         else if (!snapshot.exists) {
-          throw new Error('One of the 10 geohash does not exist');
+          throw new Error('the geohash ' + curGeohash + ' does not exist');
         }
         i--;
       }
