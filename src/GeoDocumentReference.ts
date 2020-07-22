@@ -96,43 +96,31 @@ export class GeoDocumentReference {
       var data: GeoFirestoreTypes.DocumentData = {};
       let geohash = this.id;
       let i = GEOHASH_PRECISION;
+      let ref: GeoFirestoreTypes.cloud.DocumentReference | GeoFirestoreTypes.web.DocumentReference;
       let GeopointToRemove: GeoFirestoreTypes.cloud.GeoPoint;
-      const geofirestore = new GeoFirestore(this._document.parent.firestore);
 
       while (i > 0) {
         const curGeohash = geohash.substring(0, i);
         // We are looking if the point the Geopoint is inside the collection
-        const ref = await (this._document.parent).doc(curGeohash);
-        // Transaction
-        try {
-          await geofirestore.runTransaction(async (t) => {
-            // Init GeoTransaction
-            const geotransaction = new GeoTransaction(t);
-            // Get snapshot
-            const snapshot = await geotransaction.get(ref)
-            // Complete existing documents by incrementing the size and calculate new centroïde
-            if (snapshot.exists) {
-              // Get data from snapshot
-              const curCluster = snapshot.data();
-              if (curGeohash.length === GEOHASH_PRECISION)
-                GeopointToRemove = curCluster.l;
-              // deleting the document if the size is <= 1
-              if (curCluster.s <= 1)
-                await ref.delete();
-              else {
-                const newSize = curCluster.s - 1;
-                curCluster.l = deletingPointFromCentroid(curCluster.l, GeopointToRemove, newSize);
-                onUpdate(curCluster);
-                geotransaction.set(ref, encodeGeoDocument(curCluster.l, curGeohash, data, true, newSize), { customKey: 'l' });
-              }
-            }
-            else if (!snapshot.exists) {
-              throw new Error('Geopoint does not exist');
-            }
-          });
+        const snapshot = await (this._document.parent).doc(curGeohash).get();
+        const curCluster = snapshot.data();
+        if (snapshot.exists) {
+          ref = snapshot.ref;
+          // Stock the geopoint to remove from the centroid
+          if (curGeohash.length === 10)
+            GeopointToRemove = curCluster.l;
+          // deleting the document if the size is <= 1
+          if (curCluster.s <= 1)
+            await ref.delete();
+          else {
+            curCluster.l = deletingPointFromCentroid(curCluster.l, GeopointToRemove, curCluster.s);
+            curCluster.s -= 1;
+            onUpdate(curCluster);
+            await ref.set(encodeGeoDocument(curCluster.l, curGeohash, data, true, curCluster.s));
+          }
         }
-        catch (e) {
-          console.error('Transaction failure:', e);
+        else {
+          throw new Error('Geopoint does not exist');
         }
         i--;
       }
@@ -141,6 +129,7 @@ export class GeoDocumentReference {
       return (this._document as GeoFirestoreTypes.web.DocumentReference).delete().then(() => null);
     }
   }
+
 
   /**
    * Reads the document referred to by this `GeoDocumentReference`.
