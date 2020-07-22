@@ -1,4 +1,3 @@
-import { GeoTransaction } from './GeoTransaction';
 import { GeoFirestoreTypes } from './GeoFirestoreTypes';
 import { encodeSetDocument, encodeUpdateDocument, sanitizeSetOptions, deletingPointFromCentroid, encodeGeoDocument, GEOHASH_PRECISION } from './utils';
 import { GeoCollectionReference } from './GeoCollectionReference';
@@ -115,12 +114,12 @@ export class GeoDocumentReference {
           else {
             curCluster.l = deletingPointFromCentroid(curCluster.l, GeopointToRemove, curCluster.s);
             curCluster.s -= 1;
-            onUpdate(curCluster);
+            if (onUpdate) onUpdate(curCluster);
             await ref.set(encodeGeoDocument(curCluster.l, curGeohash, data, true, curCluster.s));
           }
         }
-        else {
-          throw new Error('Geopoint does not exist');
+        else if (!snapshot.exists) {
+          throw new Error('One of the 10 geohash does not exist');
         }
         i--;
       }
