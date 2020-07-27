@@ -1,7 +1,7 @@
 {
   "name": "@meditect/geofirestore-clustering-js",
   "description": "Location-based querying and filtering using Firebase's Firestore",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "scripts": {
     "build": "rm -rf ./dist && rollup -c",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
@@ -14,6 +14,9 @@
     "prepare": "yarn build",
     "pretest": "node pretest.js",
     "deploy": "firebase deploy",
+    "patch": "yarn version --patch",
+    "minor": "yarn version --minor",
+    "major": "yarn version --major",
     "deploy:travis": "firebase deploy --non-interactive --token $FIREBASE_TOKEN"
   },
   "main": "dist/index.cjs.js",
