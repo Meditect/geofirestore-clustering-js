@@ -755,3 +755,36 @@ export function wrapLongitude(longitude: number): number {
     return 180 - (-adjusted % 360);
   }
 }
+
+/**
+ * Wraps the longitude to [-180,180].
+ *
+ * @param longitude The longitude to wrap.
+ * @return longitude The resulting longitude.
+ */
+
+export const computeCentroid =  (
+  point: { latitude:  number; longitude: number },
+  centroid: { latitude:  number; longitude: number },
+  size: number,
+  value: number
+) => {
+  const oldLatLng = new LatLng(centroid.latitude, centroid.longitude);
+  const newLatlng = new LatLng(point.latitude, point.longitude);
+  let newCenter;
+  if (value == 1){
+  newCenter = interpolate(
+    oldLatLng,
+    newLatlng,
+    1 / (size + 1)
+  ).toJSON()};
+  if (value == -1){
+    newCenter = interpolate(
+      oldLatLng,
+      newLatlng,
+      -1 / (size - 1)
+    ).toJSON()};
+  
+  return {latitude: newCenter.lat, longitude: newCenter.lng};
+};
+
