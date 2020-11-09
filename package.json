@@ -50,7 +50,7 @@
   ],
   "dependencies": {
     "@google-cloud/firestore": ">= 2.0.0",
-    "firebase": ">= 6.0.0",
+    "firebase": "7.24.0",
     "firebase-admin": "^8.13.0",
     "spherical-geometry-js": "^2.0.0"
   },
